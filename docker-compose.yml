@@ -1,0 +1,7 @@
+version: "3"
+services:
+  node-container-zenn:
+    build: ./node-container
+    container_name: node-container-zenn
+    volumes:
+      - .:/workdir

@@ -2,6 +2,28 @@
 
 - [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide)
 
+## docker の起動関連
+
+- 起動してエミュレータを起動するとき
+
+```
+docker-compose up
+docker-compose run -p 8000:8000 node-container-zenn /bin/bash
+```
+
+- 起動済みのコンテナに接続するとき
+
+```
+docker ps
+docker exec -i -t <CONTAINER ID> /bin/bash
+```
+
+- コンテナを停止するとき
+
+```
+docker-compose down
+```
+
 # ファイル配置
 
 - articles
