@@ -45,4 +45,4 @@ npx zenn preview
 
 # topic 一覧
 
-["AWS","React"]
+["AWS","React","Python","TypeScript","Docker","Flutter","GitHub","Next.js","Node.js","Android","Linux","Firebase","VSCode","Dart","Kotlin","Lambda","Ubuntu","Terraform"]
