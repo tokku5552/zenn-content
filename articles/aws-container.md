@@ -3,7 +3,7 @@ title: "AWS CLI v2 をdockerで使えるようにする"
 emoji: "🐈"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS", "Docker", "awscli", "VSCode"]
-published: false
+published: true
 ---
 
 AWS CLI を手元の環境を汚さずに docker で作成したかったのでやり方をメモ
