@@ -4,7 +4,7 @@
 
 ## docker の起動関連
 
-- 起動してエミュレータを起動するとき
+- コンテナを起動して shell に接続する
 
 ```
 docker-compose up
@@ -34,7 +34,7 @@ docker-compose down
 
 ```
 npx zenn new:article
-npx zenn new:article --slug 記事のスラッグ --title タイトル --type idea --emoji ✨
+npx zenn new:article --slug <slug> --title タイトル --type idea --emoji ✨
 ```
 
 # プレビューする
@@ -45,4 +45,4 @@ npx zenn preview
 
 # topic 一覧
 
-["AWS","React"]
+["AWS","React","Python","TypeScript","Docker","Flutter","GitHub","Next.js","Node.js","Android","Linux","Firebase","VSCode","Dart","Kotlin","Lambda","Ubuntu","Terraform"]
