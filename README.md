@@ -4,7 +4,7 @@
 
 ## docker の起動関連
 
-- 起動してコンテナを起動する
+- コンテナを起動して shell に接続する
 
 ```
 docker-compose up
