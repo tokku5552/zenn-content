@@ -2,6 +2,9 @@ version: "3"
 services:
   node-container-zenn:
     build: ./node-container
+    tty: yes
     container_name: node-container-zenn
     volumes:
       - .:/workdir
+    ports:
+      - "127.0.0.1:8000:8000"
