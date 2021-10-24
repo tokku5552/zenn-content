@@ -7,7 +7,7 @@
 - コンテナを起動して shell に接続する
 
 ```
-docker-compose up
+docker-compose up -d
 docker-compose run -p 8000:8000 node-container-zenn /bin/bash
 ```
 
