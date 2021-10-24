@@ -7,21 +7,29 @@
 - コンテナを起動して shell に接続する
 
 ```
-docker-compose up -d
-docker-compose run -p 8000:8000 node-container-zenn /bin/bash
+make up
 ```
 
 - 起動済みのコンテナに接続するとき
 
 ```
-docker ps
-docker exec -i -t <CONTAINER ID> /bin/bash
+make bash
 ```
 
 - コンテナを停止するとき
 
 ```
-docker-compose down
+make down
+```
+
+- コンテナの再起動
+```
+make restart
+```
+
+- コンテナの破棄
+```
+make destroy
 ```
 
 # ファイル配置
@@ -31,14 +39,21 @@ docker-compose down
   - example-article2.md
 
 # 記事作成
-
+- コンテナ外から
 ```
-npx zenn new:article
+make new-article
+```
+- コンテナのシェルから
+```
 npx zenn new:article --slug <slug> --title タイトル --type idea --emoji ✨
 ```
 
 # プレビューする
-
+- コンテナ外から
+```
+make preview
+```
+- コンテナのシェルから
 ```
 npx zenn preview
 ```
