@@ -39,6 +39,65 @@ https://tokku-engineer.tech/how-to-add-iam-user/
 インストール方法は以前書いたこちらの記事を参考に、Ansbileのプレイブックに起こしました。  
 https://zenn.dev/tokku5552/articles/aws-container
 
+やってることは
+- which awsでコマンドがインストールされているか確認
+- インストールされていなければ
+  - インストーラが入っているzipファイルをダウンロード
+  - zipファイルを解凍
+  - インストーラを実行してインストール
+- .aws/configファイルを上書き
+- .aws/credentialsファイルを上書き
+
+```yaml:install_awscli.yml
+# install_awscli
+- name: check awscli
+  command: "which aws"
+  register: result
+  check_mode: no
+  changed_when: no
+  failed_when: no
+
+- name: download awscli installer
+  get_url:
+    url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: /tmp/awscliv2.zip
+    force: yes
+  when: result.rc == 1
+
+- name: unzrchive zip
+  unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp/
+    copy: no
+  when: result.rc == 1
+
+- name: install awscli
+  become: yes
+  command:
+    cmd: ./aws/install
+    chdir: /tmp
+  when: result.rc == 1
+
+- name: copy config file
+  become: yes
+  copy:
+    src: config
+    dest: /root/.aws/config
+
+- name: copy credentials file
+  become: yes
+  copy:
+    src: credentials
+    dest: /root/.aws/credentials
+
+```
+
+ポイントとしては、頭の`check awscli`でコマンドの有無を確認した結果を`result`に格納して、そのあとの一連のインストール処理を行うかどうかを振り分けているところです。  
+yumでインストールが出来ればモジュールを使って冪等性を担保しつつ記述できるのですが、公式のインストール方法に従うと、既にインストール済みかどうかを判別する必要が出てきてしまうのが難点です...  
+:::message alert
+注意点として、`unzip`のインストールが必要なので事前にしておくのと、CloudWatch Agentを起動するユーザーのホームディレクトリに`.aws`フォルダを作っておく必要があります。
+:::
+
 ## CloudWatch Agent
 # 結果
 # 参考
