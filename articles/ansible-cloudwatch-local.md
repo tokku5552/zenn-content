@@ -2,7 +2,7 @@
 title: "自宅サーバーにansibleでCloudWatch Agentの設定をしてCloudWatchで監視できるようにした"
 emoji: "👋"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["AWS","Ansible","Docker","CloudWatch"]
+topics: ["AWS","Ansible","Docker","CloudWatch","AWSCLIv2"]
 published: true
 ---
 自宅サーバーにCloudWatch Agentを入れてCloudWatch側で監視をしようと思い立ったので、メモ。
