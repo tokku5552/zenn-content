@@ -3,7 +3,7 @@ title: "【Flutter】freezedでフィールドに自分で作った型やDateTim
 emoji: "👌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Flutter","freezed","dart"]
-published: false
+published: true
 ---
 FlutterでFreezedを使ってコード生成を行っている場合、自作クラスや`DateTime`をフィールドに含めて`fromJson`を生成しようとすると、目的の型に正しくキャストされず失敗してしまいます。
 この記事では、そのような問題の解決策を紹介します。
