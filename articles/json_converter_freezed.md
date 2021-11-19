@@ -5,10 +5,15 @@ type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Flutter","freezed","dart"]
 published: false
 ---
-Flutterを使っていて
-リード文
+FlutterでFreezedを使ってコード生成を行っている場合、自作クラスや`DateTime`をフィールドに含めて`fromJson`を生成しようとすると、目的の型に正しくキャストされず失敗してしまいます。
+この記事では、そのような問題の解決策を紹介します。
+
+`freezed`や一緒に使うことが多い`riverpod`、`state_notifier`の使い方については以下の記事をご覧ください。
+
+https://qiita.com/tokkun5552/items/70a8f18abbae4bb06aa3
+
 # 問題
-下記の場合のように、`freezed`で定義するフィールドに自分で作った型や`DateTime`を宣言すると、`fromJson`を生成したときに上手く生成してくれません。
+繰り返しになりますが下記の場合のように、`freezed`で定義するフィールドに自分で作った型や`DateTime`を宣言すると、`fromJson`を生成したときに上手く生成してくれません。
 ```dart:todo_id.dart
 @freezed
 class TodoId with _$TodoId {
