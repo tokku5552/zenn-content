@@ -3,7 +3,7 @@ title: "Reactでサクッとchromeの拡張機能をつくる"
 emoji: "👌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["React","chrome","JavaScript","TypeScript","GitHub"]
-published: false
+published: true
 ---
 現在エンジニアの採用に関わる仕事をやることがあるのですが、その際にGitHubのページのリンクを貼ってくれているのはいいものの、どんな言語が得意なのか、などの指標がなく[GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats)をみんなはってくれたらいいのにな～  
 と思ったので、chrome拡張機能で表示できるようにしました
