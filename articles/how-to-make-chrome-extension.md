@@ -7,20 +7,31 @@ published: true
 ---
 現在エンジニアの採用に関わる仕事をやることがあるのですが、その際にGitHubのページのリンクを貼ってくれているのはいいものの、どんな言語が得意なのか、などの指標がなく[GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats)をみんなはってくれたらいいのにな～  
 と思ったので、chrome拡張機能で表示できるようにしました
-![screen](https://user-images.githubusercontent.com/69064290/142964241-0e132aa8-4317-45d1-a3b3-a55ecc0fffbc.png)
 
 - 作った拡張機能
   - GitHub Language Stats
 
 https://github.com/tokku5552/github-language-extension
 
-- 使い方
+### 使い方
 
-現在審査に出している最中なので、上記のリポジトリをクローンしていただき、`npm install`した後`npm run build`でビルドすると、`dist`フォルダが出来上がります。
+chromeウェブストアから拡張機能を追加してください。
+勝手に拡張機能が開いてくれるタイプのものではないので、ピン止めしておくことをお勧めします。
+https://chrome.google.com/webstore/detail/github-language-stats/neehefkdpillkikhjjjbccnldgppekcj?hl=ja&authuser=0
+
+GitHubのページで拡張機能のアイコンをクリックすると、画像のように`GitHubStats`と`MostUsedLanguage`が表示されます。
+![screen](https://user-images.githubusercontent.com/69064290/142964241-0e132aa8-4317-45d1-a3b3-a55ecc0fffbc.png)
+
+GitHubのぺージでないところも、ポップアップ下部のフォームにユーザー名を入力すると、入力したユーザーの情報が表示されます。
+
+
+### 使い方(ローカルビルド)
+
+[リポジトリ](https://github.com/tokku5552/github-language-extension)をクローンしていただき、`npm install`した後`npm run build`でビルドすると、`dist`フォルダが出来上がります。
 `dist`フォルダをchromeの拡張機能の`パッケージ化されていない拡張機能を読み込む`というところで指定すると、使えるようになります。
 
 :::message alert
-注意点としてchromeの拡張機能の管理画面で画面右上にある`デベロッパーモード`をONにしておく必要があります。
+chromeの拡張機能の管理画面で画面右上にある`デベロッパーモード`をONにしておく必要があります。
 :::
 
 ## React + TypeScriptで作る
@@ -182,7 +193,7 @@ ReactDOM.render(
 
 ## まとめ
 フォームが生HTMLのままという何とも言えない感じなので、そのうち`Chakra UI`でも当てて綺麗にしようと思います。
-Chrome拡張機能の公開自体も他に記事がたくさんあるし、それを見てれば基本困ることはなかったので、特にこの記事では言及しません。**$5**くらいかかります。
+Chrome拡張機能の公開自体も他に記事がたくさんあるし、それを見てれば基本困ることはなかったので、特にこの記事では言及しません。**$5**くらいかかります。私は1日で審査通りました🎉
 
 [publicリポジトリとして公開している](https://github.com/tokku5552/github-language-extension)ので、気に入った方はお使いいただくなり、PR送ったりして頂けると嬉しいです！
 Issueでのバグ報告もお待ちしております!
@@ -192,3 +203,5 @@ Issueでのバグ報告もお待ちしております!
 https://qiita.com/RyBB/items/32b2a7b879f21b3edefc
 
 https://github.com/tokku5552/github-language-extension
+
+https://chrome.google.com/webstore/detail/github-language-stats/neehefkdpillkikhjjjbccnldgppekcj?hl=ja&authuser=0
