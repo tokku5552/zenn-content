@@ -7,7 +7,7 @@ published: true
 ---
 現在エンジニアの採用に関わる仕事をやることがあるのですが、その際にGitHubのページのリンクを貼ってくれているのはいいものの、どんな言語が得意なのか、などの指標がなく[GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats)をみんなはってくれたらいいのにな～  
 と思ったので、chrome拡張機能で表示できるようにしました
-![](https://storage.googleapis.com/zenn-user-upload/8f4b802748ef-20211122.png)
+![screen](https://user-images.githubusercontent.com/69064290/142964241-0e132aa8-4317-45d1-a3b3-a55ecc0fffbc.png)
 
 - 作った拡張機能
   - GitHub Language Stats
@@ -65,7 +65,7 @@ popupが開くだけの簡単なものです。URLを見てGitHubのページか
 ## Reactで作っている部分
 かなり突貫で作ったので、いらないものも色々と残っていますが、機能しているのは実質`popup.tsx`のみです。
 
-以下がコードになります。ところどころコメントを解説コメントをいれています。
+以下がコードになります。ところどころ解説コメントをいれています。
 
 ```tsx:popup.tsx
 import React, { useEffect, useState } from "react";
@@ -181,7 +181,7 @@ ReactDOM.render(
 ```
 
 ## まとめ
-フォームが生HTMLのままという何とも言えない感じなので、そのうち`ChakraUI`でも当てて綺麗にしようと思います。
+フォームが生HTMLのままという何とも言えない感じなので、そのうち`Chakra UI`でも当てて綺麗にしようと思います。
 Chrome拡張機能の公開自体も他に記事がたくさんあるし、それを見てれば基本困ることはなかったので、特にこの記事では言及しません。**$5**くらいかかります。
 
 [publicリポジトリとして公開している](https://github.com/tokku5552/github-language-extension)ので、気に入った方はお使いいただくなり、PR送ったりして頂けると嬉しいです！
