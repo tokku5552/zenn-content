@@ -39,6 +39,10 @@ Chrome拡張は所詮JavaScriptなので、TypeScriptで開発出来ますし、
 今回は簡単な機能しかないものの、簡潔に書けるReactで作ることにしました。
 [こちらのレポジトリ](https://github.com/tokku5552/chrome-extension-sample)をコピーすると`npm + webpack`でReactを使ったChrome拡張のサンプルが出来ますので、Starterのように使っていただければと思います。
 
+Reactの環境構築についてはこちら
+
+https://tokku-engineer.tech/react-devlocal-macos/
+
 - manifest.json
 
 chrome拡張では、`manifest.json`で、名前やバージョンの他、いつ起動するか、どんな権限が必要か等を設定することが出来ます。
