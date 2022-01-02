@@ -5,7 +5,8 @@ type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [php,CloudFunction,Laravel,EC2]
 published: false
 ---
-aaa
+
+# CloudFormationでAWS周りの設定
 
 # EC2にPHP/Laravelの環境を構築
 ```
@@ -32,3 +33,17 @@ sudo systemctl status nginx
 sudo systemctl start nginx
 sudo systemctl enable nginx
 ```
+
+- mysqlのインストール
+```
+sudo yum install mysql -y
+```
+
+- gitのインストール
+```
+sudo yum install git
+```
+
+https://qiita.com/ntm718/items/f896c8e4fb801777954b
+
+- nginxとphp-fpmの設定
