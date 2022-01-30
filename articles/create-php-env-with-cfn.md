@@ -1,5 +1,5 @@
 ---
-title: "CloudFormationとAnsibleでALB+EC2+RDSのLaravel環境を構築する"
+title: "CloudFormationとAnsibleでALB+EC2+RDSのLaravel環境を構築する(手順編)"
 emoji: "🐕"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [AWS,php,Laravel,cloudformation,EC2]
