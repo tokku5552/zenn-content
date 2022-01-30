@@ -59,5 +59,7 @@ npx zenn preview
 ```
 
 # topic 一覧
+こちらで探すと良い
+https://zenn.dev/search
 
 ["AWS","React","Python","TypeScript","Docker","Flutter","GitHub","Next.js","Node.js","Android","Linux","Firebase","VSCode","Dart","Kotlin","Lambda","Ubuntu","Terraform"]
