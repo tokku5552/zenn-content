@@ -7,6 +7,9 @@ published: true
 ---
 検証用にphp/LaravelのアプリケーションをAWSへ素早くデプロイしたかったので、CFnとAnsibleを使って爆速でALB+EC2+RDSの環境を作れるようにしました。
 
+解説編はこちら
+https://zenn.dev/tokku5552/articles/create-php-env-explanation
+
 構成はこんな感じ
 ![](https://storage.googleapis.com/zenn-user-upload/f6248c2f7d89-20220130.png)
 
