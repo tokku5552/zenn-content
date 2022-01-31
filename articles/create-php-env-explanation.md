@@ -5,13 +5,21 @@ type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [AWS,php,Laravel,cloudformation,ansible]
 published: false
 ---
+検証用にphp/LaravelのアプリケーションをAWSへ素早くデプロイしたかったので、CFnとAnsibleを使って爆速でALB+EC2+RDSの環境を作れるようにしました。
 
 手順編はこちら
 https://zenn.dev/tokku5552/articles/create-php-env-with-cfn
 
+リポジトリはこちら
+https://github.com/tokku5552/php-docker-nginx-postgresql
+
 ### 動作環境
 - macOS Monterey 12.1(Intel)
 # 全体の構成
+
+構成はこんな感じ
+![](https://storage.googleapis.com/zenn-user-upload/f6248c2f7d89-20220130.png)
+
 
 ディレクトリは以下のようになっています。
 
@@ -422,6 +430,9 @@ Amazon Linux 2だしMySQL 5系だしインスタンスタイプはt2系だしで
 今回はそこまでやらずに`Secrets Manager`に手動でパスワードを見に行って`EC2`にセットする方法を取っています。
 
 # Ansible
+続いてAnsible側の解説です。
+今回`EC2`にphpやnginxをインストールする部分の自動化にAnsibleを用いました。
+そのままIaCで管理することができるようになっています。
 
 - ディレクトリ構成
 ```
@@ -437,7 +448,25 @@ Makefile
 README.md
 ```
 
+## Ansibleの実行環境
+私はAnsibleを使うとき、毎回docker上で起動するようにしています。(Windows/Macの両方から使いたいため)
+`Dockerfile`,`docker-compose.yml`,`Makefile`をコピーすれば割とどんなプロジェクトでも使い回せます。
+
+https://tokku-engineer.tech/build_docker_ansible_devenv/
+
+`Makefile`はビルドするのではなく、`docker compose`コマンドをラップするためだけに使っています。
+例えば`docker compose up -d`というコマンドを、`make up`と打つだけで実行できるようにしています。
+こちらはお好みでどうぞ。
+
+
+## roles
+次に`roles`下の解説です。`main.yml`では`install_php.yml`->`install_composer.yml`->`install_nginx.yml`->`install_others.yml`の順に実行しています。
 ![](https://storage.googleapis.com/zenn-user-upload/6e3b45b9e4a5-20220130.png)
+それぞれ解説します。
+
+### install_php.yml
+phpとphp-fpmほか今回の構成に必要なパッケージを`yum`でインストールし、`php-fpm`の設定も行っています。
+php-fpmの設定ファイルは、IaC上で管理するのではなく、`linefile`で一行ずつ探して置換しています。
 
 ```yaml:ansible/roles/php74/tasks/install_php.yml
 - name: yum update
@@ -498,7 +527,13 @@ README.md
     line: "listen.mode = 0660"
 ```
 
+### install_composer.yml
+composerのインストールを行っています。
+公式ページに記載されているコマンドを`shell`モジュールでそのまま叩いて、バイナリをコピーしたあと、古いものを削除しています。
+サクッと作ったので、毎回changedになってしまいますので、気になる方は最初のインストールの前に、`/usr/local/bin/composer`があるか見て、なければスキップすればいいんじゃないかなと思います。
 
+- 公式
+[Composer](https://getcomposer.org/download/)
 ```yaml:ansible/roles/php74/tasks/install_composer.yml
 - name: install composer
   shell: |
@@ -523,6 +558,10 @@ README.md
     path: /home/ec2-user/composer.phar
     state: absent
 ```
+
+### install_nginx.yml
+nginxはEC2でインストールするときは`amazon-linux-extras enable nginx1`を実行する必要があるのでまず実行しておいて、単にインストールししたあとに設定ファイルを配置しています。
+こちらも毎回必ず再起動させる作りになっているので、冪等性を気にする場合は、`nginx.conf`がchengedのときだけ実行するか、もしくは`handlers`で制御してあげればいいかなと思います。
 
 ```yaml:ansible/roles/php74/tasks/install_nginx.yml
 - name: enable nginx1
@@ -555,6 +594,104 @@ README.md
     enabled: yes
 ```
 
+- nginx.conf
+一度EC2に手動でインストールして、設定ファイルを引っ張ってきて、必要な場所を変更しました。
+といっても、ドキュメントルートを変えたくらいです。ここは今後の検証でちょくちょくいじることになるかと思います。
+
+```properties:ansible/roles/php74/files/nginx.conf
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+#   * Official Russian Documentation: http://nginx.org/ru/docs/
+
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
+include /usr/share/nginx/modules/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 4096;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    include /etc/nginx/conf.d/*.conf;
+
+    server {
+        listen       80;
+        listen       [::]:80;
+        server_name  _;
+        root         /var/www/php-docker-nginx-postgresql/src/public;
+
+        # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
+        
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        location ~ \.php$ {
+            root           /var/www;
+            fastcgi_pass   unix:/run/php-fpm/www.sock;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+        }
+    }
+
+# Settings for a TLS enabled server.
+#
+#    server {
+#        listen       443 ssl http2;
+#        listen       [::]:443 ssl http2;
+#        server_name  _;
+#        root         /usr/share/nginx/html;
+#
+#        ssl_certificate "/etc/pki/nginx/server.crt";
+#        ssl_certificate_key "/etc/pki/nginx/private/server.key";
+#        ssl_session_cache shared:SSL:1m;
+#        ssl_session_timeout  10m;
+#        ssl_ciphers PROFILE=SYSTEM;
+#        ssl_prefer_server_ciphers on;
+#
+#        # Load configuration files for the default server block.
+#        include /etc/nginx/default.d/*.conf;
+#
+#        error_page 404 /404.html;
+#            location = /40x.html {
+#        }
+#
+#        error_page 500 502 503 504 /50x.html;
+#            location = /50x.html {
+#        }
+#    }
+
+}
+```
+
+### install_others.yml
+mysqlとgitが必要なので、インストールしています。
+ここもこのあとの検証中に必要なパッケージが見つかったら随時記載していくことになるかと思います。
+
 ```yaml:ansible/roles/php74/tasks/install_others.yml
 - name: install other packages
   yum:
@@ -565,5 +702,15 @@ README.md
 ```
 
 # まとめ
+今回は[CloudFormationとAnsibleでALB+EC2+RDSのLaravel環境を構築する(手順編)](https://zenn.dev/tokku5552/articles/create-php-env-with-cfn)で手順を記載した記事の解説編ということで、解説を行いました。
+このPJはこのあと`deployer`を導入して、最終的にはCI/CDまで組む検証をしようかなと思っています。
+誰かの参考になれば幸いです！
+
 
 ### 参考
+- [Composer](https://getcomposer.org/download/)
+- [DockerでAnsibleの実行環境を作って家のサーバーを管理する | インフラエンジニアがもがくブログ](https://tokku-engineer.tech/build_docker_ansible_devenv/)
+- [Composerの使い方 - Qiita](https://qiita.com/sano1202/items/50e5a05227d739302761)
+- [【PHP】認証と認可のちがいとJWTの検証について - Qiita](https://qiita.com/tokkun5552/items/fff00d35f9c8bc654dd3)
+- [CloudFormationとAnsibleでALB+EC2+RDSのLaravel環境を構築する(手順編)](https://zenn.dev/tokku5552/articles/create-php-env-with-cfn)
+- [[小ネタ]「!Cidr」というチョット便利なCloudFormationの組み込み関数 | DevelopersIO](https://dev.classmethod.jp/articles/cidr_cloudformation/)
