@@ -143,8 +143,33 @@ after('deploy:failed', 'deploy:unlock');
 
 before('deploy:symlink', 'artisan:migrate');
 
-
 ```
+
+- 初回のデプロイでartisan:migrateで以下のエラーが出る。
+```shell:
+In Client.php line 103:
+                                                                                       
+  The command "/usr/bin/php /var/www//releases/1/src/artisan migrate --force" failed.  
+                                                                                       
+  Exit Code: 1 (General error)                                                         
+                                                                                       
+  Host Name: LaravelWeb1                                                               
+                                                                                       
+  ================                                                                     
+                                                                                       
+  In Connection.php line 703:                                                          
+                                                                                       
+    SQLSTATE[HY000] [2002] Connection refused (SQL: select * from information_s        
+    chema.tables where table_schema = forge and table_name = migrations and tab        
+    le_type = 'BASE TABLE')                                                            
+                                                                                       
+                                                                                       
+  In Connector.php line 70:                                                            
+                                                                                       
+    SQLSTATE[HY000] [2002] Connection refused                                          
+```
+
+`EC2`にログインし、`.env`を書き換えればOK
 
 [GitHub Actions × Laravel × Deployerで自動デプロイ - Qiita](https://qiita.com/koyablue/items/a809f86ca934de52f206)
 [Deployerでサブディレクトリをデプロイする - Qiita](https://qiita.com/grohiro/items/ec516762e61d9dbdf126)
