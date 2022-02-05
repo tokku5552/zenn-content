@@ -53,6 +53,7 @@ npx zenn new:article --slug <slug> --title タイトル --type idea --emoji ✨
 ```
 make preview
 ```
+
 - コンテナのシェルから
 ```
 npx zenn preview
