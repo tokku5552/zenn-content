@@ -158,7 +158,7 @@ PLAY RECAP *********************************************************************
 
 ## 4.アプリケーションのデプロイ(手動)
 
-:::message warn
+:::message alert
 後ほど`deployer`で権限周りと毎回のデプロイ先は整理するため、今回は暫定の設定。
 :::
 
@@ -274,7 +274,7 @@ X-Powered-By: PHP/7.4.26
 ![](https://storage.googleapis.com/zenn-user-upload/71819f858ebc-20220130.png)
 
 - 上記のデプロイ作業をもう一台のEC2でも行っておく。
-:::message warn
+:::message alert
 ただし、.envは設定済みのEC2からコピーし、`php artisan migrate`も行わない。
 :::
 
