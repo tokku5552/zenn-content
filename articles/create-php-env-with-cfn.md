@@ -19,7 +19,7 @@ https://zenn.dev/tokku5552/articles/create-php-env-explanation
 # 手順
 サンプルリポジトリ。こちらにCFnの定義、ansibleの定義、Laravelのアプリがまとまっています。
 
-https://github.com/tokku5552/php-docker-nginx-postgresql
+https://github.com/tokku5552/php-docker-nginx-postgresql/tree/create-cfn-ansible
 
 - 作業概要
   - 1.ローカルへリポジトリをクローン

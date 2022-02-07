@@ -11,7 +11,7 @@ published: true
 https://zenn.dev/tokku5552/articles/create-php-env-with-cfn
 
 リポジトリはこちら
-https://github.com/tokku5552/php-docker-nginx-postgresql
+https://github.com/tokku5552/php-docker-nginx-postgresql/tree/create-cfn-ansible
 
 ### 動作環境
 - macOS Monterey 12.1(Intel)
