@@ -1,13 +1,13 @@
 ---
-title: "laravel"
+title: "GitHub ActionsでLaravelプロジェクトをCI/CDする"
 emoji: "🎢"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["AWS","githubactions","laravel"]
+topics: ["AWS","githubactions","deployer","laravel","laravel"]
 published: false
 ---
+[前回の記事](https://zenn.dev/tokku5552/articles/deployer-local)で`deployer`を使って`Laravel`アプリをローカルから`EC2`へデプロイしたので、今回は`GitHub Actions`にのせて`CI/CD`を組んでいきます。
 
-ローリングアップデートでの`CI/CD`構築に先駆けて、PHPのデプロイツールである`deployer`を使って`Laravel`アプリを`EC2`にデプロイしてみました。
-今回の環境は以下の手順でサクッと作りました。
+今回の検証環境は以下の手順ですぐに作れます。
 
 https://zenn.dev/tokku5552/articles/create-php-env-with-cfn
 
@@ -191,8 +191,20 @@ AWSCLIをインストールします。
           sudo ./aws/install --update
           aws --version
 ```
+はじめ`sudo ./aws/install`でインストールを実施したら`Found preexisting AWS CLI installation: /usr/local/aws-cli/v2/current. Please rerun install script with --update flag.`というエラーが出てしまったので、以下の記事を参考に`--update`をつけました。
+https://zenn.dev/hdmt/scraps/db91ecc16f3b10
 
 ### sshのセットアップ
+次にsshのセットアップを行います。sshの鍵はGitHubのシークレットに保存しておいて、読み込みます。
+- 対象リポジトリの`Settings -> Actions -> New repository secret`をクリックします。
+
+![シークレットの作成方法](https://storage.googleapis.com/zenn-user-upload/c4ca1ea55d9b-20220210.png)
+
+- `Name`を`SSH_DEPLOY_KEY`に設定し、鍵の中身をコピーして`Value`に貼り付け`Add secret`をクリックします。
+
+![SSH_DEPLOY_KEY](https://storage.googleapis.com/zenn-user-upload/e9d2a0d08c8e-20220210.png)
+
+これで`{{ secrets.SSH_DEPLOY_KEY}}`で取得できるようになったので、以下のようにキーペアとして書き出してパーミッションを600にしてやります。
 ```yml:
       - name: setup ssh
         working-directory: ./src
@@ -206,7 +218,15 @@ AWSCLIをインストールします。
           ssh-keyscan 13.112.197.49 >> ~/.ssh/known_hosts
           ssh-keyscan 18.181.224.249 >> ~/.ssh/known_hosts
 ```
+
+
+
 ### deployerでのデプロイ
+次はローリングアップデートの部分です。
+今回の`deploy.php`ではAWSCLIを使ってALBの制御を行っているので、AWSCLIで必要なシークレットを設定しておきます。
+![AWS_ACCESS_KEY_ID](https://storage.googleapis.com/zenn-user-upload/cc1bd8ce272c-20220210.png)
+同様にして`AWS_SECRET_ACCESS_KEY`も設定しておきます。
+`AWS_DEFAULT_REGION`と`AWS_DEFAULT_OUTPUT`は特に秘匿する必要もないので直接書いていますが、秘匿したい場合は同様にシークレットに保存しておけば良いと思います。
 ```yml:
       - name: deploy to EC2 with rolling updates
         env:
@@ -220,14 +240,15 @@ AWSCLIをインストールします。
           vendor/bin/dep deploy LaravelWeb1 -vvv
           vendor/bin/dep deploy LaravelWeb2 -vvv
 ```
-![シークレットの作成方法](https://storage.googleapis.com/zenn-user-upload/c4ca1ea55d9b-20220210.png)
-![AWS_ACCESS_KEY_ID](https://storage.googleapis.com/zenn-user-upload/cc1bd8ce272c-20220210.png)
-![SSH_DEPLOY_KEY](https://storage.googleapis.com/zenn-user-upload/e9d2a0d08c8e-20220210.png)
+デプロイ自体は`vendor/bin/dep deploy LaravelWeb1`コマンドのみで、ログに詳細出力させるために`-vvv`オプションを付与しています。
+
 
 ### Rolling Updateにする
+[前回の記事](https://zenn.dev/tokku5552/articles/deployer-local)の状態の`deploy.php`で上記のように順番にデプロイすると、以下のように一方が`initial`でもう一方が`draining`の状態となり、一時的にサービスダウンしてしまうことになります。
 ![initial draining](https://storage.googleapis.com/zenn-user-upload/96a376e1a0f7-20220210.png)
 
-追加したタスク
+これを防ぐために、`deploy.php`にターゲットの状態が`healthy`になるまで待機するタスクを追加しました。
+
 ```php:deploy.php
 after('register-targets', 'describe-target-health');
 task('describe-target-health', function () {
@@ -259,10 +280,37 @@ task('describe-target-health', function () {
 });
 ```
 
+条件がいくつもあって分かりづらいですが、`aws elbv2 describe-target-health`でターゲットグループの情報を取得し、デプロイ対象インスタンスの状態が`healthy`かどうかを`$retry_count`だけ確かめて、回数オーバーしたら終了ステータス1で終了させるようにしました。
+これを`after('register-targets', 'describe-target-health');`としておくことで、ターゲットグループへの再登録後に実施するようになり、サービスダウンなくデプロイを行うことができるようになりました。
+
 # テスト
+今回検証したリポジトリはLaravelのほうはほぼプロジェクト作成後いじっていないのであまり意味ないですが、`CI/CD`ということでちゃんとテストも自動化しておきます。
+Laravelでユニットテストを動かすために、`.env`ファイルを配置してやる必要があったので、こちらも`secrts`に設定しておきます。
 ![LARAVEL_ENV](https://storage.googleapis.com/zenn-user-upload/78d8100ffd97-20220210.png)
 
+あとは簡単で、`./src`の直下に`.env`ファイルを作成して、`vendor/bin/phpunit tests/`を実行することでユニットテストを実施します。
+```yaml:
+      - name: set laravel env
+        run: echo "${{ secrets.LARAVEL_ENV }}" > .env
+        working-directory: ./src
 
-https://zenn.dev/hdmt/scraps/db91ecc16f3b10
+      - name: run unit test
+        run: vendor/bin/phpunit tests/
+        working-directory: ./src
+```
 
-https://qiita.com/koyablue/items/a809f86ca934de52f206
+ターゲットブランチに`push`すると、無事passすることができました🎉
+![](https://storage.googleapis.com/zenn-user-upload/30b5efe9e388-20220211.png)
+
+# まとめ
+4記事かけて検証しましたが、インフラも`IaC`で管理して`CI/CD`で自動化するとかなり気持ちよく開発をすすめることができると思います。
+もっと開発者体験を高めるには例えばカバレッジを可視化してSlackに自動通知したりすると、更に開発意欲がまして良さそうだなと思いました。
+
+### 参考
+
+- [Found preexisting AWS CLI installation: /usr/local/aws-cli/v2/current. の対処](https://zenn.dev/hdmt/scraps/db91ecc16f3b10)
+- [GitHub Actions × Laravel × Deployerで自動デプロイ - Qiita](https://qiita.com/koyablue/items/a809f86ca934de52f206)
+- [CloudFormationとAnsibleでALB+EC2+RDSのLaravel環境を構築する(手順編)](https://zenn.dev/tokku5552/articles/create-php-env-with-cfn)
+- [CloudFormationとAnsibleでALB+EC2+RDSのLaravel環境を構築する(解説編)](https://zenn.dev/tokku5552/articles/create-php-env-explanation)
+- [【AWS】ALBからの切り離しと再登録手順](https://zenn.dev/tokku5552/articles/aws-target-group-desc)
+- [Laravelプロジェクトをdeployerを使ってEC2にデプロイする](https://zenn.dev/tokku5552/articles/deployer-local)
