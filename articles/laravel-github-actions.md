@@ -3,7 +3,7 @@ title: "GitHub ActionsでLaravelプロジェクトをCI/CDする"
 emoji: "🎢"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["AWS","githubactions","deployer","laravel","laravel"]
-published: false
+published: true
 ---
 [前回の記事](https://zenn.dev/tokku5552/articles/deployer-local)で`deployer`を使って`Laravel`アプリをローカルから`EC2`へデプロイしたので、今回は`GitHub Actions`にのせて`CI/CD`を組んでいきます。
 
