@@ -10,6 +10,8 @@ Session Managerで
 - 構成図
 ![](https://storage.googleapis.com/zenn-user-upload/5613227ca453-20220223.png)
 
+## パブリックサブネットでやってみる
+
 - IAMロールを作っておく
 
 ![](https://storage.googleapis.com/zenn-user-upload/1a7af9a4f2c3-20220227.png)
@@ -17,8 +19,6 @@ Session Managerで
 - 対象のEC2を選択し、`アクション -> セキュリティ -> IAMロールを変更`をクリックして今作ったロールを割り当てる。
 
 ![](https://storage.googleapis.com/zenn-user-upload/1adf0bad1b0e-20220227.png)
-
-
 
 - SSMと通信できているか確認する。(以下はtelnetで確認する例。)
 
@@ -118,13 +118,15 @@ Run "sudo yum update" to apply all updates.
 上をやったあと、EC2を一旦停止して、VPCからインターネットゲートウェイをデタッチ
 EC2のセキュリティグループのインバウンドルールでHTTPS VPC CIDRを追加する
 
-
+- エンドポイントを作成する
 ![](https://storage.googleapis.com/zenn-user-upload/9d1bfbce6c1b-20220227.png)
 ![](https://storage.googleapis.com/zenn-user-upload/f496b8a24a40-20220227.png)
 ![](https://storage.googleapis.com/zenn-user-upload/dd10ecb557d2-20220227.png)
 ![](https://storage.googleapis.com/zenn-user-upload/61c1e507a5b8-20220227.png)
 ![](https://storage.googleapis.com/zenn-user-upload/915ed53fe21a-20220227.png)
 
+
+- どうようにしてあと2つつくる
 ![](https://storage.googleapis.com/zenn-user-upload/3ed1583dd1fb-20220227.png)
 ![](https://storage.googleapis.com/zenn-user-upload/3cbdcf247830-20220227.png)
 ![](https://storage.googleapis.com/zenn-user-upload/3a98c4517edd-20220227.png)
