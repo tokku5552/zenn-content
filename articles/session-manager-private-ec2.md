@@ -111,22 +111,60 @@ Run "sudo yum update" to apply all updates.
 これでパブリックサブネットの場合は完了。
 
 ## プライベートサブネットにしてみる(WIP)
+以下の公式ドキュメントにしたがって実施する。  
 [ステップ 6: (オプション) AWS PrivateLink を使用して Session Manager の VPC エンドポイントを設定する - AWS Systems Manager](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-getting-started-privatelink.html)
-先にVPCのDNSホスト名有効化
-![](https://storage.googleapis.com/zenn-user-upload/25f65624d47b-20220227.png)
-[Systems Manager を使用したインターネットアクセスなしでのプライベート EC2 インスタンスの管理](https://aws.amazon.com/jp/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/)
-上をやったあと、EC2を一旦停止して、VPCからインターネットゲートウェイをデタッチ
-EC2のセキュリティグループのインバウンドルールでHTTPS VPC CIDRを追加する
 
-- エンドポイントを作成する
+- 先にVPCのDNSホスト名有効化
+
+![](https://storage.googleapis.com/zenn-user-upload/25f65624d47b-20220227.png)
+
+- 上をやったあとプライベートVPCからのアクセスを確認するためにEC2を一旦停止して、VPCからインターネットゲートウェイをデタッチ。
+- EC2のセキュリティグループのインバウンドルールでHTTPS VPC CIDRを追加する
+
+![](https://storage.googleapis.com/zenn-user-upload/3a98c4517edd-20220227.png)
+
+- エンドポイントを作成する。計3つ作る必要があるが、まずssmのエンドポイントに対して作成。`VPC -> エンドポイント -> エンドポイントを作成`をクリックし、適当に名前をつけ`サービスカテゴリ`を`AWSのサービス`にする。
+
 ![](https://storage.googleapis.com/zenn-user-upload/9d1bfbce6c1b-20220227.png)
+
+- サービス選択画面で`com.amazonaws.ap-northeast-1.ssm`を選択する。(リージョンが異なる場合は該当のリージョンを選択)
+
 ![](https://storage.googleapis.com/zenn-user-upload/f496b8a24a40-20220227.png)
-![](https://storage.googleapis.com/zenn-user-upload/dd10ecb557d2-20220227.png)
+
+- EC2が存在するVPCを選択しAZを選択、サブネットを選択する。
+
 ![](https://storage.googleapis.com/zenn-user-upload/61c1e507a5b8-20220227.png)
+
+- セキュリティグループを選択し、`エンドポイントを作成`をクリックする。
+
 ![](https://storage.googleapis.com/zenn-user-upload/915ed53fe21a-20220227.png)
 
 
-- どうようにしてあと2つつくる
+- 同様にしてあと2つつくる。サービス：`com.amazonaws.ap-northeast-1.ec2messages`
+
 ![](https://storage.googleapis.com/zenn-user-upload/3ed1583dd1fb-20220227.png)
+
+- サービス：`com.amazonaws.ap-northeast-1.ssmmessages`
+
 ![](https://storage.googleapis.com/zenn-user-upload/3cbdcf247830-20220227.png)
-![](https://storage.googleapis.com/zenn-user-upload/3a98c4517edd-20220227.png)
+
+- 再度接続してみて、ちゃんと接続されることを確認。
+
+```
+% ssh ec2-user@i-XXXXXXXXXXXXXXX -i .ssh/<your key>
+Last login: Wed Feb 23 13:49:33 2022 from localhost
+
+       __|  __|_  )
+       _|  (     /   Amazon Linux 2 AMI
+      ___|\___|___|
+
+https://aws.amazon.com/amazon-linux-2/
+8 package(s) needed for security, out of 14 available
+Run "sudo yum update" to apply all updates.
+[ec2-user@ip-10-0-1-142 ~]$
+```
+
+これでプライベートサブネットからもアクセス可能となる。
+
+### 参考
+[Systems Manager を使用したインターネットアクセスなしでのプライベート EC2 インスタンスの管理](https://aws.amazon.com/jp/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/)
