@@ -2,7 +2,7 @@ version: "3"
 services:
   node-container-zenn:
     build: ./node-container
-    tty: yes
+    tty: true
     container_name: node-container-zenn
     volumes:
       - .:/workdir
