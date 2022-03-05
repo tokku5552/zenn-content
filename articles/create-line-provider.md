@@ -1,17 +1,29 @@
 ---
-title: "LINE"
+title: "LINE APIの個人検証環境を作る"
 emoji: "🦁"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["LINE"]
-published: false
+topics: ["line","手順","web","api","個人開発"]
+published: true
 ---
 
 ## LINEのプロバイダーとチャネル作成方法
 - LINEアカウントでLINE Developersにログインする
-- Providers->Create
+
+![](https://storage.googleapis.com/zenn-user-upload/1776da3af52a-20220304.png)
+
+- 上記画面中央ほどにある`Providers->Create`をクリックする。
+
 - Create a new providerでProvider nameを入力。今回は`個人検証`
+
+![](https://storage.googleapis.com/zenn-user-upload/53e581d344c1-20220304.png)
+
 - Chanelを作成する。取り敢えず`Create a Messaging API channel`をクリック
-- `Create a new channel`で必要事項を入力する。(ちなみに右下の`English`のところを`日本語`に変えると表示言語が日本語に切り替わります。)
+
+![](https://storage.googleapis.com/zenn-user-upload/0f4f44b3172a-20220304.png)
+
+- `Create a new channel(新規チャネル作成)`で必要事項を入力する。(ここで気づきましたが右下の`English`のところを`日本語`に変えると表示言語が日本語に切り替わります。)
+
+![](https://storage.googleapis.com/zenn-user-upload/a2763ca4dece-20220304.png)
 
 | 入力項目                   | 値                     |
 | -------------------------- | ---------------------- |
@@ -28,13 +40,10 @@ published: false
 | サービス利用規約URL        | <未設定>               |
 
 - 規約への同意にチェックを入れて`作成`をクリック
-- 更に確認画面が2度出てくるので確認して進む
+- 更に確認画面が2度出てくるので`OK`をクリックして進む
+
+![](https://storage.googleapis.com/zenn-user-upload/e032d5ab03b2-20220304.png)
+
 - 無事`LINE Channel`が作成されました🎉
 
-![](https://storage.googleapis.com/zenn-user-upload/a2763ca4dece-20220304.png)
-![](https://storage.googleapis.com/zenn-user-upload/d4fbe851760b-20220304.png)
-![](https://storage.googleapis.com/zenn-user-upload/0f4f44b3172a-20220304.png)
-![](https://storage.googleapis.com/zenn-user-upload/53e581d344c1-20220304.png)
-![](https://storage.googleapis.com/zenn-user-upload/1776da3af52a-20220304.png)
 ![](https://storage.googleapis.com/zenn-user-upload/c860ecdd56cd-20220304.png)
-![](https://storage.googleapis.com/zenn-user-upload/e032d5ab03b2-20220304.png)
