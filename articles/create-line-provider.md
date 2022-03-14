@@ -9,7 +9,7 @@ published: true
 ## LINEのプロバイダーとチャネル作成方法
 - LINEアカウントでLINE Developersにログインする
 
-![](https://storage.googleapis.com/zenn-user-upload/1776da3af52a-20220304.png)
+![](https://storage.googleapis.com/zenn-user-upload/b75a38d71428-20220314.png)
 
 - 上記画面中央ほどにある`Providers->Create`をクリックする。
 
