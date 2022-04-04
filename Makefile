@@ -4,7 +4,7 @@ build:
 	docker compose build --no-cache --force-rm
 remake:
 	@make destroy
-	@make init
+	@make up
 stop:
 	docker compose stop
 down:

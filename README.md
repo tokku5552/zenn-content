@@ -63,4 +63,4 @@ npx zenn preview
 こちらで探すと良い
 https://zenn.dev/search
 
-["AWS","React","Python","TypeScript","Docker","Flutter","GitHub","Next.js","Node.js","Android","Linux","Firebase","VSCode","Dart","Kotlin","Lambda","Ubuntu","Terraform"]
+["AWS","React","Python","TypeScript","Docker","Flutter","GitHub","Next.js","Node.js","Android","Linux","Firebase","VSCode","Dart","Kotlin","Lambda","Ubuntu","Terraform","githubactions","awscdk"]
