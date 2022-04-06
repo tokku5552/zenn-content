@@ -240,6 +240,10 @@ curl -X GET http://localhost/v1/todos -v
 
 # バックエンド
 バックエンドはRailsのAPIモードで作成しました。
+詳細は以下の記事を御覧ください
+
+https://zenn.dev/tokku5552/articles/nuxt-rails-backend
+
 - DBのスキーマ
 ```ruby:api/db/schema.rb
 ActiveRecord::Schema.define(version: 2022_03_21_130738) do
