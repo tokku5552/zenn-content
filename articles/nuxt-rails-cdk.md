@@ -3,7 +3,7 @@ title: "【Nuxt x Rails】サンプルTODOアプリ - AWSCDK編"
 emoji: "⛳"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["aws","nuxt","awscdk","rails","githubactions"]
-published: false
+published: true
 ---
 今回検証目的でフロントにNuxt、バックエンドにRails、インフラにAWSを使って以下のようなTODOアプリを作りました。
 ![](https://storage.googleapis.com/zenn-user-upload/cbc16aa9e5c1-20220405.png)
