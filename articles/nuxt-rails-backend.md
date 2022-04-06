@@ -241,4 +241,135 @@ curl -H "Accept: application/json" \
 ![](https://storage.googleapis.com/zenn-user-upload/6d9bf89620c8-20220405.png)
 
 # Capistranoの定義
+- Gemfileの`group :development do`の中に以下を追加します。
+```ruby:api/Gemfile
+group :development do
+  gem 'listen', '~> 3.3'
+  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  gem 'spring'
+  gem "capistrano", "~> 3.10", require: false
+  gem "capistrano-rails", "~> 1.6", require: false
+  gem 'capistrano-rbenv', '~> 2.2'
+  gem 'capistrano-rbenv-vars', '~> 0.1'
+  gem 'capistrano3-puma'
+end
+```
+
+- bundle installします
+```bash:
+bundle install
+bundle exec cap install STAGES=production
+```
+
+- 作成された`Capfile`に以下を追加します。
+```ruby:api/Capfile
+require 'capistrano/rbenv'
+require 'capistrano/bundler'
+require 'capistrano/rails/migrations'
+require 'capistrano/puma'
+install_plugin Capistrano::Puma
+install_plugin Capistrano::Puma::Systemd
+install_plugin Capistrano::Puma::Nginx
+```
+
+- deployの設定ファイルを修正します。
+  - `application`、`repo_url`、`branch`、`deploy_to`はご自身の物に読み替えてください。
+```ruby:api/config/deploy.rb
+set :application, "api"
+set :repo_url, "git@github.com:tokku5552/nuxt-rails-sample.git"
+set :rbenv_ruby, File.read('.ruby-version').strip
+set :branch, ENV['BRANCH'] || "main"
+set :nginx_config_name, "#{fetch(:application)}.conf"
+set :nginx_sites_enabled_path, "/etc/nginx/conf.d"
+set :deploy_to, '/var/www/api'
+```
+
+- 接続情報を記載します。今回ターゲットはcdkでEC2を作り直すたびに変わるので、環境変数で受け取っています。
+```ruby:api/config/deploy/production.rb
+server ENV['TARGET_INSTANCE_ID'], user: "ec2-user", roles: %w{app db web}
+
+require 'net/ssh/proxy/command'
+set :ssh_options, {
+  proxy: Net::SSH::Proxy::Command::new("aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"),
+  keys: %w(~/.ssh/MyKeypair.pem),
+  forward_agent: true,
+  auth_methods: %w(publickey),
+}
+```
+今回SSM経由でのSSH接続を行うので、`require 'net/ssh/proxy/command'`を追加した上で、`ssh_options`に`proxy`のコマンドを渡しています。
+参考：[ステップ 8: (オプション) Session Manager を通して SSH 接続のアクセス許可を有効にして制御する - AWS Systems Manager](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-getting-started-enable-ssh-connections.html)
+また、環境変数は`api/.env.sample`をコピーして`api/.env`を作成し、実際のターゲットを記載します。
+```ini:api/.env
+TARGET_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+```
+
+- DBへの接続情報を記載します。以下のコマンドで`api/config/credentials.yml.enc`に暗号化された状態で接続情報を記載できます。
+  - このファイルは`master.key`がないと復号できない様になっており、`credentials.yml.enc`自体はgit管理下にしておいてdeployの設定ファイルで指定したブランチにプッシュしておきます。
+```bash:
+EDITOR=vi rails credentials:edit
+# viが開くので以下のように編集して :wq で上書き保存
+db:
+  password: RDSのパスワード
+  hostname: RDSのエンドポイント
+```
+RDSのパスワードは今回の私の構成と同じCDKを使いたい場合はSSMに保存してあるはずなので、以下で取得します。
+```bash
+aws ssm get-parameter --name "RailsApiRDS" --with-decryption
+```
+<!-- TODO: ここのパラメータストアの説明記事を書いても良いかもしれない -->
+エンドポイントは`RDS -> データベース -> DB識別子`のページの`接続とセキュリティ`タブから確認できます。
+![](https://storage.googleapis.com/zenn-user-upload/713105cd93fa-20220406.png)
+
+- 初回に一度デプロイを実行して必要なファイルを作成しておきます。
+```
+source .env
+TARGET_INSTANCE_ID=$TARGET_INSTANCE_ID bundle exec cap production deploy
+```
+
+- 上記だとおそらく`master.key`が存在しないエラーが出るので配置してから再度デプロイを実行します。
+  - 鍵を指定しながらのscpだとうまく行かなかったので、`~/.ssh/config`に接続情報を記載しておいて、定義したホスト名のみでアクセスできるようにしておきます。
+```
+Host railstest
+  Hostname i-xxxxxxxxxxxxxxx
+  User ec2-user
+  IdentityFile キーペア名
+  ProxyCommand sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+```
+上記の設定はsshやscpでサーバー名に`railstest`と指定した場合、実際には`ec2-user@i-xxxxxxxxxxxxxxx -i キーペア名`でProxyCommandで指定したコマンドをプロキシとして実行しながら接続しに行きます。
+
+- 改めて`master.key`を配置して`puma`のコンフィグを実行します。
+```
+scp config/master.key your_server_name:/var/www/api/shared/config
+TARGET_INSTANCE_ID=$TARGET_INSTANCE_ID bundle exec cap production puma:config
+TARGET_INSTANCE_ID=$TARGET_INSTANCE_ID bundle exec cap production puma:systemd:config puma:systemd:enable
+```
+上記コマンドの`your_server_name`は`~/.ssh/config`で指定したサーバー名に変更して実行ください。
+
+- 再度デプロイすれば成功するはずです。
+```
+TARGET_INSTANCE_ID=$TARGET_INSTANCE_ID bundle exec cap production deploy
+```
+
+- デプロイは今後上記のコマンドを実行するだけで良いですが、実際に動作させるには更にnginxの設定を行います。
+```bash:ec2
+cd /etc/nginx
+sudo mkdir sites-available
+```
+```bash:local
+bundle exec cap production puma:nginx_config
+```
+```bash:ec2
+sudo systemctl restart nginx
+curl -X GET http://localhost/v1/todos -v
+```
+上記の`curl`コマンドで200が返ってくればOK
+
 # まとめ
+今回始めてAPIモードでのRailsに触れたのですが、かなり簡単に実装できました。
+CRUDしか実装しませんでしたが、Rails自体はフルスタックなWebフレームワークなので実際にはもっと自由度が高いです。
+どうしてもコード量が多くなってしまいますが、Laravelともフォルダ構造が似ているので、慣れればわかりやすいのかなと思いました。
+
+### 参考
+- [【Nuxt x Rails】サンプルTODOアプリ - 概要](https://zenn.dev/tokku5552/articles/nuxt-rails-sample)
+- [サルでもできる!? Rails6 のアプリをAWS EC2にデプロイするまでの全手順【前半】（VPC, RDS, EC2, Capistrano） - Qiita](https://qiita.com/take18k_tech/items/5710ad9d00ea4c13ce36#6-%E3%83%87%E3%83%97%E3%83%AD%E3%82%A4capistrano)
+- [ステップ 8: (オプション) Session Manager を通して SSH 接続のアクセス許可を有効にして制御する - AWS Systems Manager](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-getting-started-enable-ssh-connections.html)
