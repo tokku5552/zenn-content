@@ -74,8 +74,28 @@ const railsProps: RailsProps = {
 new RailsSampleStack(app, 'RailsSampleStack', railsProps);
 new NuxtSampleStack(app, 'NuxtSampleStack', {})
 ```
+`dotenv`を使用して、`cdk/.env`を読み込んでいます。
+以下がサンプルです。
+```ini:
+HOSTED_ZONE_ID=
+ZONE_NAME=
+CERTIFICATE_ARN=
+KEY_NAME=
+```
+これらはCDKでの構築対象ではなく、事前に準備が必要な項目となります。
+- `HOSTED_ZONE_ID`
+  - 取得済みの`Route 53`のホストゾーンのIDを記載します。
+- `ZONE_NAME`
+  - 取得済みの`Route 53`のホストゾーン名を記載します。
+- `CERTIFICATE_ARN`
+  - 取得済みの証明書のARNを記載します。
+- `KEY_NAME`
+  - `EC2`に設定する認証用の鍵の名前を指定します。こちらもすでにAWS上に登録されているものを指定する想定です。
 
 ## lib/nuxt-sample-stack.ts
+Nuxt側のスタックです。
+NuxtのコードをデプロイするS3バケットの用意と、それをオリジンにしたCloudFrontを作成します。
+CloudFrontの`defaultRootObject`はCDK上は任意の設定項目ですが、入れてやらないとうまく動作しませんでした。
 ```ts:cdk/lib/nuxt-sample-stack.ts
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -101,8 +121,13 @@ export class NuxtSampleStack extends Stack {
     }
 }
 ```
+お好みでCloudFront側のポリシーなんかを追加するとより実用的かなと思います。
+ただ今回はCI/CDでのデプロイ時にキャッシュを毎回削除しているので、ポリシーは追加しませんでした。
 
 ## lib/rails-sample-stack.ts
+Backend側である`ALB -> EC2 -> RDS`部分のスタックです。
+SAMと違ってこれらがTypeScriptで構築できるのはCDKの強みですね。
+長いので、コード上にコメントで解説を入れています。
 ```ts:cdk/lib/rails-sample-stack.ts
 import { Stack, StackProps, SecretValue } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -117,30 +142,37 @@ import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets'
 import { RailsProps } from '../bin/cdk'
 
 export class RailsSampleStack extends Stack {
-  constructor(scope: Construct, id: string, props: RailsProps) {
+  // propsはStackPropsを拡張したものを受け取っています。
+  constructor(scope: Construct, id: string, props: RailsProps) { 
     super(scope, id, props);
 
     // create VPC
     const vpc = new ec2.Vpc(this, 'RailsVPC', {
       cidr: '10.0.0.0/21',
-      subnetConfiguration: [{
+      subnetConfiguration: [
+      // public側のサブネット
+      {
         subnetType: ec2.SubnetType.PUBLIC,
         name: 'Ingress',
         cidrMask: 24
       },
+      // private側のサブネット
       {
         cidrMask: 24,
         name: 'Database',
         subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
       }],
+      // 上記のように指定してやると、VPCの中で使えるcidrから勝手にサブネットを分割してくれます。
     });
 
+    // EC2用のセキュリティグループ
     const securityGroupforEC2 = new ec2.SecurityGroup(this, 'SecurityGroupforEC2', {
       vpc,
       description: 'Allow HTTP ingress',
       allowAllOutbound: true,
     })
 
+    // TCP:80のみ許可します。
     securityGroupforEC2.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(80),
@@ -148,6 +180,7 @@ export class RailsSampleStack extends Stack {
     )
 
     // IAM role for SSM Agent
+    // SessionManager経由でSSHを行いたいため、Roleを付与しておきます。
     const role = new iam.Role(this, "ec2Role", {
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
     });
@@ -156,6 +189,7 @@ export class RailsSampleStack extends Stack {
     );
 
     // create EC2 Instance
+    // これまでで定義したリソースを渡しながらEC2のインスタンスを作成します。
     const instance = new ec2.Instance(this, 'RailsInstance', {
       vpc,
       instanceName: 'RailsInstance',
@@ -172,6 +206,7 @@ export class RailsSampleStack extends Stack {
     })
 
     // create ALB
+    // EC2を作ってからALBを作成します。(でないとtargetに追加できない)
     const lb = new elbv2.ApplicationLoadBalancer(this, 'LB', {
       vpc,
       internetFacing: true,
@@ -179,19 +214,24 @@ export class RailsSampleStack extends Stack {
       loadBalancerName: 'RailsLB'
     })
 
+    // ALBではTCP:443で待ち受けておきます。
     const listener = lb.addListener('Listener', {
       port: 443,
       open: true
     })
+
+    // 環境変数で指定したARNをもとに証明書を取得してALBのリスナーに追加します。
     const cert = acm.Certificate.fromCertificateArn(this, 'CertificateFromArn', props.certificateArn);
     listener.addCertificates('RailsListenerCertificate', [cert])
 
+    // EC2をターゲットに追加してALBは完了
     listener.addTargets('ApplicationFleet', {
       port: 80,
       targets: [new InstanceTarget(instance, 80)]
     })
 
     // add Route 53 Record
+    // 証明書がドメインに紐付いているので、取得済みのドメインを管理しているホストゾーンにレコードを追加しています。
     const hostZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZoneAttributes', {
       hostedZoneId: props.hostedZoneId,
       zoneName: props.zoneName
@@ -204,18 +244,23 @@ export class RailsSampleStack extends Stack {
     })
 
     // RDS
+    // RDS用のセキュリティグループを追加します。
     const securityGroupforRDS = new ec2.SecurityGroup(this, 'SecurityGroupforRDS', {
       vpc,
       description: 'Allow MySQL ingress',
       allowAllOutbound: true,
     })
 
+    // 今回MySQLを使用するのでTCP:3306を開けておきます。
     securityGroupforRDS.addIngressRule(
       ec2.Peer.securityGroupId(securityGroupforEC2.securityGroupId),
       ec2.Port.tcp(3306),
       "Allow MySQL Access"
     )
     const engine = rds.DatabaseInstanceEngine.mysql({ version: rds.MysqlEngineVersion.VER_5_7_34 })
+
+    // ここはRails側の設定と合わせてやるひつようがあります。
+    // utf8mb4を使いたいので、各種文字コードをセットしておきます。
     const parameterGroup = new rds.ParameterGroup(this, 'ParameterGroup', {
       engine: engine,
       parameters: {
@@ -226,6 +271,9 @@ export class RailsSampleStack extends Stack {
         character_set_server: 'utf8mb4',
       },
     });
+
+    // これまで定義したリソースを指定してRDSのインスタンスを作成します。
+    // DBのパスワードは事前にパラメータストアに保存したものを使用します。
     const db = new rds.DatabaseInstance(this, 'RailsRDS', {
       engine,
       vpc,
@@ -243,4 +291,13 @@ export class RailsSampleStack extends Stack {
 }
 ```
 
+上記コメントにも書きましたが、事前にパラメータストアにRDSのパスワードを保存しておく必要があります。
+`your_db_password`をお好きなパスワードに変更して実行してください。
+```bash:
+aws ssm put-parameter --name "RailsApiRDS" --value "your_db_password" --type "SecureString"
+```
+
 # まとめ
+AWS CDKv2は2021/12にGAとなったばかりで、ドキュメントも少ないため、基本的には公式のリファレンスをたどるしかありません。
+読むコツさえつかめば、コードのサンプルが大量に記載されているので、それを使いながら構築していくことができるかと思います。
+- [AWS CDK · AWS CDK Reference Documentation](https://docs.aws.amazon.com/cdk/api/v2/)
