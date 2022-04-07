@@ -463,6 +463,10 @@ export default Vue.extend({
 `Vue`で`TypeScript`を使うための小細工をしていますが、それ以外は特殊なことはおこなっていません。  
 UIは`Vuetify`を使っていて、`Vuex`は使用せずに、`methods`や`mounted`に直接動作を記述しています。
 
+Nuxt編はこちら
+
+https://zenn.dev/tokku5552/articles/nuxt-rails-frontend
+
 # CI/CD
 GitHub Actionsで自動デプロイをしています。
 リポジトリの`Secrets -> Actions`に以下のように、今までローカルで定義してきた環境変数などをセットしておきます。
