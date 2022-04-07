@@ -44,6 +44,10 @@ make app
 
 これでwebへは`http://localhost:3000`、appへは`http://localhost:8000`でアクセスできます。
 
+Dockerの定義については以下の記事で詳しく解説しています。
+
+https://zenn.dev/tokku5552/articles/nuxt-rails-docker
+
 ## AWS CDKv2を使って`ALB+EC2+RDS`と`CloudFront+S3`の構成を作成
 AWS CDKでインフラを構築しています。バックエンドとフロントエンドのスタックだけ分けて、以下の変数を環境変数から受け取る形にしています。
 
