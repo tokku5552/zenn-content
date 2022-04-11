@@ -484,6 +484,7 @@ GitHub Actionsで自動デプロイをしています。
 
 上記をセットしたらあとは`main`にマージされたタイミングで3つのデプロイプロセスが順番に走ります。
 
+:::details 全コード
 ```yaml:.github/workflows/workflow.yml
 name: deploy prd
 
@@ -615,6 +616,8 @@ jobs:
           aws s3 sync dist s3://nuxt.s3bucket/ --include "*"
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTIN_ID }} --paths "/*"
 ```
+:::
+
 - jobs
   - deploy_cdk
     - 基本的には頑張って`cdk deploy --all`がしたいだけです。
@@ -626,6 +629,10 @@ jobs:
 
 うまく行けばこんな感じで`Status`が`Success`と表示されます🎉
 ![](https://storage.googleapis.com/zenn-user-upload/b8c403dd0e6c-20220405.png)
+
+CI/CDの解説はこちらをご参照ください🙇‍♂️
+
+https://zenn.dev/tokku5552/articles/nuxt-rails-cicd
 
 # まとめ
 この記事ではざっくり上から手順を紹介する形としました。
