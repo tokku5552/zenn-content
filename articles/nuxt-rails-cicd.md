@@ -342,6 +342,10 @@ https://zenn.dev/tokku5552/articles/nuxt-rails-backend
 `yarn generate`で`nuxt generate`が走り、SPAモードで`dist`にビルドされた結果が出力されます。
 それをオリジンに指定しているS3バケットにアップロードして、その後全てのパスのキャッシュを削除しているという流れです。
 
+Nuxt編はこちら
+
+https://zenn.dev/tokku5552/articles/nuxt-rails-frontend
+
 
 # まとめ
 今回の構成では事前にAWS CDKでインフラを構築したあと、EC2の設定を行って、更に必要な情報(EC2のインスタンスID、CroudFrontのDISTRIBUTION ID、S3のバケット名)を取得しておく必要があります。(つまりCDK側の変更箇所によってはEC2が再作成されて、環境変数を再設定しないとCI/CDが動かなくなる...)
