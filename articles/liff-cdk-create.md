@@ -2,13 +2,26 @@
 title: "AWS CDK x React でLIFFアプリを作る"
 emoji: "📑"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws"]
-published: false
+topics: ["aws","line","cdk","react","typescript"]
+published: true
 ---
 
+最近`create-react-app`ならぬ`create-liff-app`というコマンドの存在を知ったので、試してみました。
+以下のリポジトリにコードを公開しています。
 
 https://github.com/tokku5552/liff-cdk-sample
 この記事ではLINE Developers側の設定は記載しないので、[公式サイト](https://developers.line.biz/ja/docs/liff/)を御覧ください。
+
+## Create LIFF APPとは
+公式によれば、
+> Create LIFF Appは、LIFFアプリの開発環境がコマンド1つで構築できるCLIツールです。ReactのCreate React App (opens new window)や、Next.jsのCreate Next App (opens new window)のように、Create LIFF Appからの質問に答えていくことで、用途に合わせたLIFFアプリのひな形を含む開発環境が生成され、すぐに開発が始められます。
+
+とのこと。サクッと始めれて便利そうなので試してみました。
+- [Create LIFF AppでLIFFアプリの開発環境を構築する | LINE Developers](https://developers.line.biz/ja/docs/liff/cli-tool-create-liff-app/)
+
+そもそもLIFFって何？という人は[公式ドキュメント](https://developers.line.biz/ja/docs/liff/overview/)を御覧ください。
+一言で言えばLINE上で動く専用のWebアプリのことです。
+
 ## プロジェクトの雛形作成
 - 適当にディレクトリ作って`cdk init`します。
   - `cdk init`は空ディレクトリじゃないと実行できないので先にやります。
@@ -52,7 +65,8 @@ Done! Now run:
 あとからliff-idを追加する場合は`.env`に書けばOKです。
 
 ## AWS CDKでS3+CloudFrontにデプロイ
-- Stack
+スタックを編集していきます。構成としてはS3にビルド後のコードをアップロードし、それをCloudFrontのオリジンに指定するごく一般的なものです。  
+今回は検証のため、ドメインの設定等は行っていません。
 ```typescript:lib/liff-cdk-sample-stack.ts
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -65,6 +79,7 @@ export class LiffCdkSampleStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // S3バケット作成
     const liffAppBucket = new s3.Bucket(this, 'LiffAppBucket', {
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html'
@@ -81,6 +96,7 @@ export class LiffCdkSampleStack extends Stack {
 
     liffAppBucket.addToResourcePolicy(liffAppBucketPolicyStatement);
 
+    // CloudFrontの設定
     const liffAppDistribution = new cloudfront.CloudFrontWebDistribution(this, 'LiffAppDistribution', {
       errorConfigurations: [
         {
@@ -112,6 +128,7 @@ export class LiffCdkSampleStack extends Stack {
       priceClass: cloudfront.PriceClass.PRICE_CLASS_ALL
     })
 
+    // S3へデプロイ
     new s3deploy.BucketDeployment(this, 'LiffAppDeploy', {
       sources: [s3deploy.Source.asset('./liff-app/dist')],
       destinationBucket: liffAppBucket,
@@ -122,7 +139,9 @@ export class LiffCdkSampleStack extends Stack {
 }
 ```
 
-- デプロイ
+デプロイのsourcesはプロジェクトに合わせて変更してください。今回React側の設定はデフォルトのまま(`dist`)なので、`liff-app/dist`としています。
+
+- デプロイは以下のコマンドで行います。
 ```shell:
 cd liff-app
 yarn build
