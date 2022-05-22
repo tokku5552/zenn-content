@@ -16,7 +16,7 @@ https://github.com/tokku5552/liff-cdk-sample
 公式によれば、
 > Create LIFF Appは、LIFFアプリの開発環境がコマンド1つで構築できるCLIツールです。ReactのCreate React App (opens new window)や、Next.jsのCreate Next App (opens new window)のように、Create LIFF Appからの質問に答えていくことで、用途に合わせたLIFFアプリのひな形を含む開発環境が生成され、すぐに開発が始められます。
 
-とのこと。サクッと始めれて便利そうなので試してみました。
+とのこと。サクッと始めれて便利そうです。
 - [Create LIFF AppでLIFFアプリの開発環境を構築する | LINE Developers](https://developers.line.biz/ja/docs/liff/cli-tool-create-liff-app/)
 
 そもそもLIFFって何？という人は[公式ドキュメント](https://developers.line.biz/ja/docs/liff/overview/)を御覧ください。
