@@ -2,7 +2,7 @@
 title: "AWS CDK x React でLIFFアプリを作る"
 emoji: "📑"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["aws","line","cdk","react","typescript"]
+topics: ["aws","line","awscdk","react","typescript"]
 published: true
 ---
 
