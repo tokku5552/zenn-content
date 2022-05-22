@@ -1,0 +1,1 @@
+{"buildTargets":["bash","build","destroy","destroy-volumes","down","log-node-container-zenn","log-node-container-zenn-watch","logs","logs-watch","new-article","preview","ps","remake","restart","stop","up"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
